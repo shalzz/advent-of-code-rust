@@ -8,16 +8,11 @@ fn main() -> std::io::Result<()> {
     let mut contents = String::new();
     reader.read_to_string(&mut contents)?;
 
-    let mut total_fuel: f32 = 0.0;
-    for (index, line) in contents.lines().enumerate() {
-        let mass: f32 = line
-            .trim()
-            .parse()
-            .expect(&format!("Input should a integer at {}", index));
-
-        let fuel: f32 = mass / 3.0;
-        total_fuel += fuel.floor() - 2.0;
-    }
+    let total_fuel: f32 = contents
+        .lines()
+        .map(|line| line.trim().parse::<f32>().expect("Input should an integer"))
+        .map(|mass| (mass / 3.0).floor() - 2.0)
+        .sum();
 
     println!("Total Fuel required is {}", total_fuel);
     Ok(())
