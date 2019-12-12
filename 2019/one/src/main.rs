@@ -16,14 +16,12 @@ fn main() -> std::io::Result<()> {
         .map(cal_fuel) // calculate initial fuel required for the module
         .map(|fuel| {
             // calculate fuel required for the fuel itself
-            let mut total = fuel;
+            let mut total = 0.0; // we account for the initial fuel in the while loop.
             let mut new_fuel = fuel;
-            loop {
-                new_fuel = cal_fuel(new_fuel);
-                if new_fuel <= 0.0 {
-                    break;
-                }
+
+            while new_fuel > 0.0 {
                 total += new_fuel;
+                new_fuel = cal_fuel(new_fuel);
             }
             total
         })
