@@ -2,6 +2,26 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 
+#[derive(PartialEq)]
+enum OpCode {
+    Add,
+    Mult,
+    Halt,
+}
+
+impl From<usize> for OpCode {
+    fn from(item: usize) -> OpCode {
+        use OpCode::*;
+
+        match item {
+            1 => Add,
+            2 => Mult,
+            99 => Halt,
+            _ => unreachable!(),
+        }
+    }
+}
+
 fn main() -> std::io::Result<()> {
     let file = File::open("input.txt")?;
     let mut reader = BufReader::new(file);
@@ -39,16 +59,15 @@ fn main() -> std::io::Result<()> {
 
 fn exec_intcode(state: &mut Vec<usize>) {
     for index in (0..state.len()).step_by(4) {
-        let opcode = state[index];
+        let opcode = state[index].into();
         let first = state[index + 1];
         let second = state[index + 2];
         let output = state[index + 3];
 
         match opcode {
-            1 => state[output] = state[first] + state[second], // add opcode
-            2 => state[output] = state[first] * state[second], // multiply opcode
-            99 => break,                                       // halt
-            _ => panic!("Something went wrong!"),
+            OpCode::Add => state[output] = state[first] + state[second],
+            OpCode::Mult => state[output] = state[first] * state[second],
+            OpCode::Halt => break,
         }
     }
 }
