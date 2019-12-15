@@ -1,6 +1,4 @@
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
+use std::fs;
 
 #[derive(PartialEq)]
 enum OpCode {
@@ -23,10 +21,7 @@ impl From<usize> for OpCode {
 }
 
 fn main() -> std::io::Result<()> {
-    let file = File::open("input.txt")?;
-    let mut reader = BufReader::new(file);
-    let mut contents = String::new();
-    reader.read_to_string(&mut contents)?;
+    let contents = fs::read_to_string("input.txt")?;
 
     let init_state: Vec<usize> = contents
         .split(',')
