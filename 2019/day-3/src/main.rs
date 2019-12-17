@@ -24,29 +24,37 @@ fn main() -> std::io::Result<()> {
         .collect();
 
     let mut grid: HashMap<Pos, usize> = HashMap::new();
-    let mut cross_points: Vec<Pos> = Vec::default();
 
-    for (index, wire) in wires.iter().enumerate() {
-        let mut curr_pos = Pos::new(0, 0); // reset for every new wire.
-        for mov in wire {
-            let dir = match mov.get(..1) {
-                Some("L") => Pos::new(0, -1),
-                Some("R") => Pos::new(0, 1),
-                Some("U") => Pos::new(1, 0),
-                Some("D") => Pos::new(-1, 0),
-                _ => panic!("Unable to parse input"),
-            };
+    let cross_points: Vec<Pos> = wires
+        .iter()
+        .enumerate()
+        .flat_map(|(index, wire)| {
+            wire.iter()
+                .flat_map(|mov| {
+                    let dir = match mov.get(..1) {
+                        Some("L") => Pos::new(0, -1),
+                        Some("R") => Pos::new(0, 1),
+                        Some("U") => Pos::new(1, 0),
+                        Some("D") => Pos::new(-1, 0),
+                        _ => panic!("Unable to parse input"),
+                    };
 
-            let dest: i32 = mov.get(1..).unwrap().parse().expect("unable to parse path");
-            for _ in 1..=dest {
-                curr_pos += dir;
-                match grid.insert(curr_pos, index) {
-                    Some(wire_index) if wire_index != index => cross_points.push(curr_pos),
-                    _ => continue,
-                };
-            }
-        }
-    }
+                    let dest: i32 = mov.get(1..).unwrap().parse().expect("error parsing path");
+                    (1..=dest).map(move |_| dir)
+                })
+                .scan(Pos::new(0, 0), |curr_pos, dir| {
+                    *curr_pos += dir;
+                    Some(*curr_pos)
+                })
+                .zip(std::iter::repeat(index))
+        })
+        .flat_map(|(pos, index)| {
+            grid.insert(pos, index)
+                // don't count a wire crossing itself
+                .filter(|&wire_idx| wire_idx != index)
+                .map(|_| pos)
+        })
+        .collect();
 
     println!("Got cross points {:?}", cross_points);
     Ok(())
