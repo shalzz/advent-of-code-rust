@@ -25,7 +25,7 @@ fn main() -> std::io::Result<()> {
 
     let mut grid: HashMap<Pos, usize> = HashMap::new();
 
-    let cross_points: Vec<Pos> = wires
+    let closest_point = wires
         .iter()
         .enumerate()
         .flat_map(|(index, wire)| {
@@ -54,8 +54,10 @@ fn main() -> std::io::Result<()> {
                 .filter(|&wire_idx| wire_idx != index)
                 .map(|_| pos)
         })
-        .collect();
+        // manhattan distance (initial point is (0,0))
+        .map(|pos| pos.row.abs() + pos.col.abs())
+        .min();
 
-    println!("Got cross points {:?}", cross_points);
+    println!("Got closest point {:?}", closest_point);
     Ok(())
 }
