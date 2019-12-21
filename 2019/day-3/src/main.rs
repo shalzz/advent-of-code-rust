@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
         .map(|line| line.split(',').collect())
         .collect();
 
-    let mut grid: HashMap<Pos, usize> = HashMap::new();
+    let mut grid: HashMap<Pos, (usize, usize)> = HashMap::new();
 
     let closest_point = wires
         .iter()
@@ -47,15 +47,21 @@ fn main() -> std::io::Result<()> {
                     Some(*curr_pos)
                 })
                 .zip(std::iter::repeat(index))
+                .enumerate() // count steps of a wire
         })
-        .flat_map(|(pos, index)| {
-            grid.insert(pos, index)
+        .flat_map(|(steps, (pos, index))| {
+            grid.insert(pos, (index, steps + 1))
+                .map(|(wire_idx, wire_steps)| {
+                    // don't update when a wire crosses itself
+                    if wire_idx == index {
+                        grid.insert(pos, (wire_idx, steps + 1));
+                    }
+                    (wire_idx, wire_steps)
+                })
                 // don't count a wire crossing itself
-                .filter(|&wire_idx| wire_idx != index)
-                .map(|_| pos)
+                .filter(|&(wire_idx, _)| wire_idx != index)
+                .map(|(_, wire_steps)| wire_steps + steps + 1)
         })
-        // manhattan distance (initial point is (0,0))
-        .map(|pos| pos.row.abs() + pos.col.abs())
         .min();
 
     println!("Got closest point {:?}", closest_point);
