@@ -1,12 +1,33 @@
 fn main() {
     let mut count = 0;
     for num in 246540..787419 {
-        if meets_criteria_fold(&num.to_string()) {
+        if meets_criteria2(&num.to_string()) {
             count += 1
         }
     }
 
     println!("Number of possible passwords: {}", count);
+}
+
+#[allow(unused)]
+fn meets_criteria2(num: &str) -> bool {
+    let mut iter = num.chars().peekable();
+    // Use a map to track the number of repeating digits.
+    let mut map: [u32; 10] = [0; 10];
+
+    while let Some(current) = iter.next() {
+        match iter.peek() {
+            Some(&next) if current > next => return false,
+            Some(&next) if current == next => {
+                let digit = next.to_digit(10).unwrap() as usize;
+                map[digit] += 1;
+            }
+            _ => continue,
+        };
+    }
+
+    // At least one digit that repeats exactly once
+    map.iter().any(|&val| val == 1)
 }
 
 #[allow(unused)]
@@ -94,4 +115,19 @@ pub fn tests_part1_5() {
     assert_eq!(meets_criteria("392268"), false);
     assert_eq!(meets_criteria_iter("392268"), false);
     assert_eq!(meets_criteria_fold("392268"), false);
+}
+
+#[test]
+pub fn tests_part2_1() {
+    assert_eq!(meets_criteria2("112233"), true);
+}
+
+#[test]
+pub fn tests_part2_2() {
+    assert_eq!(meets_criteria2("123444"), false);
+}
+
+#[test]
+pub fn tests_part2_3() {
+    assert_eq!(meets_criteria2("111122"), true);
 }
