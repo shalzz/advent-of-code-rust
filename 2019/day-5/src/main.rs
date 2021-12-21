@@ -48,22 +48,22 @@ fn exec_intcode(state: &mut Vec<i32>) {
     while index < state.len() {
         let instrc = state[index];
         let opcode = (instrc % 100).into();
-        let params = get_param_modes(instrc)
+        let mut params = get_param_modes(instrc)
             .iter()
             .enumerate()
             .map(|(param_num, val)| {
                 let pos = state[index + param_num + 1];
                 if val == &0 {
-                    (state[pos as usize], pos)
+                    state[pos as usize]
                 } else {
-                    (pos, pos)
+                    pos
                 }
             })
             .collect::<Vec<_>>();
 
         match opcode {
-            OpCode::Add => state[params[2].1 as usize] = params[0].0 + params[1].0,
-            OpCode::Mult => state[params[2].1 as usize] = params[0].0 * params[1].0,
+            OpCode::Add => params[2] = params[0] + params[1],
+            OpCode::Mult => params[2] = params[0] * params[1],
             OpCode::Write => {
                 let mut input = String::new();
                 println!("Please provide an input:");
@@ -71,14 +71,13 @@ fn exec_intcode(state: &mut Vec<i32>) {
                     .read_line(&mut input)
                     .expect("Failed to read line");
 
-                state[params[0].1 as usize] =
-                    input.trim().parse().expect("Expected an integer input");
+                params[0] = input.trim().parse().expect("Expected an integer input");
             }
-            OpCode::Read => println!("{}", params[0].0),
+            OpCode::Read => println!("{}", params[0]),
             OpCode::Halt => break,
         }
 
-        index += params.len() + 1; // include the opcode length offset
+        index += instrc.to_string().len(); // include the opcode length offset
     }
 }
 
